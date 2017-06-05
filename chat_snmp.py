@@ -67,7 +67,7 @@ class SNMPManager:
                 message = "Encubierto:" + message
             print ("\t" + message)
             self.master.chatContainer.configure(state='normal')
-            self.master.chatContainer.insert(END, message + "\n")
+            self.master.chatContainer.insert(END, message)
             self.master.chatContainer.configure(state=DISABLED)
         return sndr
 
