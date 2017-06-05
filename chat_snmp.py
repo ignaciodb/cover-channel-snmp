@@ -10,7 +10,8 @@ import sys
 import logging
 logging.getLogger("scapy.runtime").setLevel(logging.ERROR)
 import argparse
-from Tkinter import Tk, Label, Button, StringVar, Text, END, DISABLED
+from Tkinter import *
+from PIL import ImageTk, Image
 
 ## GLOBALS
 COMMUNITY = "public"    # Community to use for communication.
@@ -83,26 +84,44 @@ class ChatGUI:
         # Set window configurations.
         self.master = master
         master.resizable(width=False, height=False)
-        master.minsize(width=500, height=300)
-        root.protocol("WM_DELETE_WINDOW", self.closeConnection)
+        #master.minsize(width=500, height=300)
+        self.master.protocol("WM_DELETE_WINDOW", self.closeConnection)
         self.snmpConn = snmpConn
+        path = re.sub(__file__, '', os.path.realpath(__file__))
+        path = path + "/images/CovertMan.png"
+        self.picCovertMan = PhotoImage(file=path)
+        master.tk.call('wm', 'iconphoto', master._w, self.picCovertMan)
         master.title("Covert Channel - SNMP")
-        self.label_index = 0
-        self.label_text = StringVar()
-        self.label_text.set("CHAT")
-        self.label = Label(master, textvariable=self.label_text)
-        self.label.bind("<Button-1>", self.cycle_label_text)
-        self.label.pack()
-        # Render chat container.
-        self.chatContainer = Text(master, height=15, width=60)
-        self.chatContainer.config(state=DISABLED)
-        self.chatContainer.pack()
-        # Render message container.
-        self.messageContainer = Text(master, height=2, width=60)
-        self.messageContainer.pack()
-        # Render buttons.
-        self.sendButton = Button(master, text="Enviar", command=self.sendClicked)
-        self.sendButton.pack()
+        # Create first Frame for rendering.
+        frameOne = Frame(self.master, width=500, height=80)
+        frameOne.pack(fill="both", expand=True)
+        frameOne.grid_propagate(False)
+        frameOne.grid_rowconfigure(0, weight=1)
+        frameOne.grid_columnconfigure(0, weight=1)
+        panel = Label(frameOne, image = self.picCovertMan)
+        panel.image = self.picCovertMan
+        panel.grid(row=0, padx=2, pady=2)
+        # Create second Frame for rendering.
+        frameTwo = Frame(self.master, width=500, height=300)
+        frameTwo.pack(fill="both", expand=True)
+        frameTwo.grid_propagate(False)
+        frameTwo.grid_rowconfigure(0, weight=1)
+        frameTwo.grid_columnconfigure(0, weight=1)
+        self.chatContainer = Text(frameTwo, relief="sunken")
+        self.chatContainer.config(wrap='word', state=DISABLED)
+        self.chatContainer.grid(row=1, column=0, sticky="nsew", padx=2)
+        self.scrollb = Scrollbar(frameTwo, command=self.chatContainer.yview)
+        self.scrollb.grid(row=1, column=1, sticky='ns')
+        self.chatContainer['yscrollcommand'] = self.scrollb.set
+        frameThree = Frame(self.master, width=500, height=50)
+        frameThree.pack(fill="both", expand=True)
+        frameThree.grid_propagate(False)
+        frameThree.grid_rowconfigure(0, weight=1)
+        frameThree.grid_columnconfigure(0, weight=1)
+        self.messageContainer = Text(frameThree, height=2, width=50)
+        self.messageContainer.grid(row=0, sticky="nsew", padx=2, pady=2)
+        self.sendButton = Button(frameThree, text="Enviar", command=self.sendClicked)
+        self.sendButton.grid(row=0, column=1, sticky='nsew', padx=2, pady=2)
 
     # This func is called when the SEND button is clicked.
     def sendClicked(self):
