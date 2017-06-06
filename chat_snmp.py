@@ -14,8 +14,9 @@ from Tkinter import *
 from PIL import ImageTk, Image
 
 ## GLOBALS
-COMMUNITY = "public"    # Community to use for communication.
-PORT = 161              # Port to use for communication. 161 = UDP.
+COMMUNITY = "UBAMSI"    # Community to use for communication.
+PORT = 162              # Port to use for communication.
+TRAPID = 14452          # ID of the SNMP trap.
 
 ## CLASSES
 # This class manage the SNMP connection.
@@ -41,7 +42,7 @@ class SNMPManager:
     # This func sends our new message.
     def sendMsg(self, text):
         oid = self.convertMsg(text)
-        packet = IP(dst=args['IP_DESTINO'])/UDP(sport=RandShort(),dport=PORT)/SNMP(community=COMMUNITY,PDU=SNMPget(varbindlist=[SNMPvarbind(oid=ASN1_OID(oid))]))
+        packet = IP(dst=self.ip_destination)/UDP(sport=RandShort(),dport=PORT)/SNMP(community=COMMUNITY,PDU=SNMPtrapv2(id=TRAPID,varbindlist=[SNMPvarbind(oid=ASN1_OID(oid))]))
         send(packet, verbose=0)
 
     # This func is called when a new SNMP packet arrives.
@@ -62,14 +63,17 @@ class SNMPManager:
                 else:
                     b = l[i]
                     a = a + b
+            self.master.chatContainer.configure(state='normal')
             if message == " q":
-                message = "Encubierto abandono la sesion."
+                message = "Encubierto se ha desconectado."
+                self.master.chatContainer.insert(END, message, "bold")
             else:
+                self.master.chatContainer.insert(END, "Encubierto:", "bold")
+                self.master.chatContainer.insert(END, message)
                 message = "Encubierto:" + message
             print ("\t" + message)
-            self.master.chatContainer.configure(state='normal')
-            self.master.chatContainer.insert(END, message)
             self.master.chatContainer.configure(state=DISABLED)
+            self.master.chatContainer.see(END)
         return sndr
 
     # This func is called when a new packet is recieved.
@@ -84,7 +88,6 @@ class ChatGUI:
         # Set window configurations.
         self.master = master
         master.resizable(width=False, height=False)
-        #master.minsize(width=500, height=300)
         self.master.protocol("WM_DELETE_WINDOW", self.closeConnection)
         self.snmpConn = snmpConn
         path = re.sub(__file__, '', os.path.realpath(__file__))
@@ -107,21 +110,22 @@ class ChatGUI:
         frameTwo.grid_propagate(False)
         frameTwo.grid_rowconfigure(0, weight=1)
         frameTwo.grid_columnconfigure(0, weight=1)
-        self.chatContainer = Text(frameTwo, relief="sunken")
+        self.chatContainer = Text(frameTwo, relief="sunken", font=("Myriad Pro", 10), borderwidth=0, highlightthickness=0)
+        self.chatContainer.tag_configure("bold", font=("Myriad Pro", 10, "bold"))
         self.chatContainer.config(wrap='word', state=DISABLED)
-        self.chatContainer.grid(row=1, column=0, sticky="nsew", padx=2)
-        self.scrollb = Scrollbar(frameTwo, command=self.chatContainer.yview)
-        self.scrollb.grid(row=1, column=1, sticky='ns')
+        self.chatContainer.grid(row=0, sticky="nsew", padx=5, pady=5)
+        self.scrollb = Scrollbar(frameTwo, command=self.chatContainer.yview, borderwidth=0, highlightthickness=0)
+        self.scrollb.grid(row=0, column=1, sticky='ns', padx=2, pady=5)
         self.chatContainer['yscrollcommand'] = self.scrollb.set
         frameThree = Frame(self.master, width=500, height=50)
         frameThree.pack(fill="both", expand=True)
         frameThree.grid_propagate(False)
         frameThree.grid_rowconfigure(0, weight=1)
         frameThree.grid_columnconfigure(0, weight=1)
-        self.messageContainer = Text(frameThree, height=2, width=50)
-        self.messageContainer.grid(row=0, sticky="nsew", padx=2, pady=2)
-        self.sendButton = Button(frameThree, text="Enviar", command=self.sendClicked)
-        self.sendButton.grid(row=0, column=1, sticky='nsew', padx=2, pady=2)
+        self.messageContainer = Text(frameThree, height=2, width=50, font=("Myriad Pro", 10),borderwidth=0, highlightthickness=0)
+        self.messageContainer.grid(row=0, sticky="nsew", padx=5, pady=5)
+        self.sendButton = Button(frameThree, text="Enviar", command=self.sendClicked, font=("Myriad Pro", 10), borderwidth=0, highlightthickness=0)
+        self.sendButton.grid(row=0, column=1, sticky='nsew', padx=5, pady=5)
 
     # This func is called when the SEND button is clicked.
     def sendClicked(self):
@@ -129,8 +133,10 @@ class ChatGUI:
         if textToSend and textToSend.strip():
             self.messageContainer.delete('1.0', END)
             self.chatContainer.configure(state='normal')
-            self.chatContainer.insert(END, "Tu: " + textToSend)
+            self.chatContainer.insert(END, "Tu: ","bold")
+            self.chatContainer.insert(END, textToSend)
             self.chatContainer.configure(state=DISABLED)
+            self.chatContainer.see(END)
             self.snmpConn.sendMsg(textToSend)
             print("\tTu: " + textToSend)
 
