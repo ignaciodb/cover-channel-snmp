@@ -65,10 +65,10 @@ class SNMPManager:
                     a = a + b
             self.master.chatContainer.configure(state='normal')
             if message == " q":
-                message = "Encubierto se ha desconectado."
+                message = "- Encubierto se ha desconectado -\n"
                 self.master.chatContainer.insert(END, message, "bold")
             else:
-                self.master.chatContainer.insert(END, "Encubierto:", "bold")
+                self.master.chatContainer.insert(END, " > Encubierto:", "bold")
                 self.master.chatContainer.insert(END, message)
                 message = "Encubierto:" + message
             print ("\t" + message)
@@ -110,11 +110,11 @@ class ChatGUI:
         frameTwo.grid_propagate(False)
         frameTwo.grid_rowconfigure(0, weight=1)
         frameTwo.grid_columnconfigure(0, weight=1)
-        self.chatContainer = Text(frameTwo, relief="sunken", font=("Myriad Pro", 10), borderwidth=0, highlightthickness=0)
+        self.chatContainer = Text(frameTwo, relief="sunken", font=("Myriad Pro", 10), spacing1=10, fg="white", borderwidth=0, highlightthickness=1, bg="black")
         self.chatContainer.tag_configure("bold", font=("Myriad Pro", 10, "bold"))
-        self.chatContainer.config(wrap='word', state=DISABLED)
+        self.chatContainer.config(wrap='word', state=DISABLED, highlightbackground="dark slate gray")
         self.chatContainer.grid(row=0, sticky="nsew", padx=5, pady=5)
-        self.scrollb = Scrollbar(frameTwo, command=self.chatContainer.yview, borderwidth=0, highlightthickness=0)
+        self.scrollb = Scrollbar(frameTwo, command=self.chatContainer.yview, borderwidth=0, highlightthickness=0, bg="dark slate gray")
         self.scrollb.grid(row=0, column=1, sticky='ns', padx=2, pady=5)
         self.chatContainer['yscrollcommand'] = self.scrollb.set
         frameThree = Frame(self.master, width=500, height=50)
@@ -122,9 +122,11 @@ class ChatGUI:
         frameThree.grid_propagate(False)
         frameThree.grid_rowconfigure(0, weight=1)
         frameThree.grid_columnconfigure(0, weight=1)
-        self.messageContainer = Text(frameThree, height=2, width=50, font=("Myriad Pro", 10),borderwidth=0, highlightthickness=0)
+        self.messageContainer = Text(frameThree, height=2, width=50, font=("Myriad Pro", 10),borderwidth=0, highlightthickness=1)
+        self.messageContainer.config(highlightbackground="dark slate gray")
         self.messageContainer.grid(row=0, sticky="nsew", padx=5, pady=5)
-        self.sendButton = Button(frameThree, text="Enviar", command=self.sendClicked, font=("Myriad Pro", 10), borderwidth=0, highlightthickness=0)
+        self.sendButton = Button(frameThree, text="Enviar", command=self.sendClicked, font=("Myriad Pro", 10), bg="black", fg="#d9d9d9", borderwidth=0, highlightthickness=1)
+        self.sendButton.config(highlightbackground="dark slate gray",activebackground="dark slate gray")
         self.sendButton.grid(row=0, column=1, sticky='nsew', padx=5, pady=5)
 
     # This func is called when the SEND button is clicked.
@@ -133,7 +135,7 @@ class ChatGUI:
         if textToSend and textToSend.strip():
             self.messageContainer.delete('1.0', END)
             self.chatContainer.configure(state='normal')
-            self.chatContainer.insert(END, "Tu: ","bold")
+            self.chatContainer.insert(END, " > Tu: ","bold")
             self.chatContainer.insert(END, textToSend)
             self.chatContainer.configure(state=DISABLED)
             self.chatContainer.see(END)
